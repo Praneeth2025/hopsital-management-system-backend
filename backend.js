@@ -416,35 +416,6 @@ app.get('/rooms/occupied', async (req, res) => {
 
 
 
-app.post('/schedules/turn-in', async (req, res) => {
-  console.log('🎯 Request body:', req.body);
-  const { patient_ids } = req.body;
-
-  if (!Array.isArray(patient_ids) || patient_ids.length === 0) {
-    console.warn('⚠️ Invalid patient_ids array');
-    return res.status(400).json({ error: "Invalid patient_ids array" });
-  }
-
-  try {
-    console.log('🚀 Calling RPC update_schedule_status_to_inside_the_cabin with:', patient_ids);
-    const { data, error } = await supabase.rpc(
-      'update_schedule_status_to_inside_the_cabin',
-      { p_patient_ids: patient_ids }
-    );
-    console.log('🔁 RPC result:', { data, error });
-
-    if (error) {
-      console.error('❌ Supabase RPC error:', error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    return res.status(200).json({ message: "Successfully updated status to Inside the Cabin" });
-  } catch (err) {
-    console.error('💥 Unexpected error:', err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
 
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body;
