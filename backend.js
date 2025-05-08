@@ -33,13 +33,34 @@ app.get('/doctors', async (req, res) => {
 
 
 app.get('/schedules/completed', async (req, res) => {
-  const { data, error } = await supabase.rpc('get_completed_schedules');
+  const sql = `
+    SELECT 
+      p.name, 
+      p.patient_id, 
+      ds.schedule_date, 
+      p.gender, 
+      p.age,
+      a.status,  
+      d.full_name  
+    FROM patient p
+    JOIN doctors d ON p.doctor_id = d.id
+    JOIN doctor_schedule ds ON p.patient_id = ds.patient_id
+    JOIN appointment a ON p.patient_id = a.patient_id
+    WHERE ds.schedule_type = 'Checkup'
+      AND a.status = 'Completed'
+    ORDER BY ds.schedule_date;
+  `;
+
+  const { data, error } = await supabase.rpc('execute_sql', { sql });
+
   if (error) {
-    console.error('Supabase RPC error:', error);
+    console.error('SQL execution error:', error);
     return res.status(500).json({ error: error.message });
   }
+
   res.json(data);
 });
+
 
 
 const port = process.env.PORT || 3000;
