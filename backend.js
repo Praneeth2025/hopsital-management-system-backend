@@ -51,6 +51,12 @@ app.get('/schedules/checkup', async (req, res) => {
   res.json(data);
 });
 
+
+
+
+
+
+
 app.get('/api/patients/:patientId', async (req, res) => {
   const { patientId } = req.params;
   console.log('Received patientId:', patientId);
@@ -244,79 +250,7 @@ app.post('/update-test-results', async (req, res) => {
 });
 
 
-app.get('/api/patients/:patientId', async (req, res) => {
-  const { patientId } = req.params;
-  console.log('Received patientId:', patientId);
-  try {
-    // 1. Get patient basic info + doctor
-    const { data: patient, error: patientError } = await supabase
-      .from('patient')
-      .select(`
-        name,
-        age,
-        mobile_number,
-        problem_description,
-        allergies,
-        current_medicines,
-        doctor_id,
-        doctors(full_name)
-      `)
-      .eq('patient_id', patientId)
-      .single();
 
-    if (patientError || !patient) {
-      return res.status(404).json({ error: 'Patient not found' });
-    }
-
-    // 2. Get medicines
-    const { data: medicines, error: medError } = await supabase
-      .from('medicines')
-      .select('medicine_name, dosage, time_to_use')
-      .eq('patient_id', patientId);
-
-    // 3. Get tests
-    const { data: tests, error: testError } = await supabase
-      .from('tests')
-      .select('test_name, test_result, test_date, result_arrival_date')
-      .eq('patient_id', patientId);
-
-    // 4. Get room
-    const { data: roomData, error: roomError } = await supabase
-      .from('room')
-      .select('room_id')
-      .eq('patient_id', patientId)
-      .single();
-
-    // 5. Get vitals
-    const { data: vitals, error: vitalsError } = await supabase
-      .from('health_monitoring')
-      .select('pulse, blood_pressure, temperature, monitoring_time')
-      .eq('patient_id', patientId);
-
-    // Construct the response object
-    const responseData = {
-      name: patient.name,
-      age: patient.age,
-      mobilenum: patient.mobile_number,
-      problem_description: patient.problem_description,
-      allergies: patient.allergies,
-      current_medicines: patient.current_medicines,
-      current_doctor: patient.doctors?.name || 'N/A',
-      room_no: roomData?.room_id ? `Room ${roomData.room_id}` : 'Not Assigned',
-      medicines: medicines || [],
-      tests: tests || [],
-      vitals: vitals || [],
-    };
-
-    // Prevent caching and return fresh data every time
-    res.setHeader('Cache-Control', 'no-store');
-    
-    return res.status(200).json(responseData);
-  } catch (err) {
-    console.error('Error fetching patient details:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
 
 
 
