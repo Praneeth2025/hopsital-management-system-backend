@@ -42,12 +42,6 @@ app.get('/schedules/completed', async (req, res) => {
 });
 
 
-
-
-
-
-
-
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`aLASSSS running on port ${port}`);
