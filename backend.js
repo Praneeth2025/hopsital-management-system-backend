@@ -350,15 +350,9 @@ app.get('/rooms/occupied', async (req, res) => {
 });
 
 
-
-
-
-
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body;
-  console.log(email);
-  console.log(typeof(password));
-  console.log(role);
+
   if (!email || !password || !role) {
     return res.status(400).json({ error: 'Email, password, and role are required.' });
   }
@@ -371,13 +365,21 @@ app.post('/api/login', async (req, res) => {
       .eq('role', role)
       .limit(1);
 
-    if (error) throw error;
-    
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw error;
+    }
 
     const user = users[0];
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or role.' });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-   
+    // Simple plain-text comparison
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Invalid password.' });
+    }
+
     res.json({
       message: 'Login successful.',
       user: {
@@ -388,10 +390,12 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Login error:', err.message);
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Server error. Please try again later.' });
   }
 });
+
+
 
 app.delete('/schedules/:id', async (req, res) => {
   const { id } = req.params;
